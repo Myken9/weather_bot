@@ -1,8 +1,6 @@
 import json
 import requests
 import telebot
-import schedule
-import time
 from geopy import geocoders
 
 
@@ -13,7 +11,7 @@ def geo_pos(city):
     return latitude, longitude
 
 
-def weather_london(latitude, longitude):
+def weather_in_city(latitude, longitude):
     url_weather = f'https://api.openweathermap.org/data/2.5/weather?lat={latitude}&lon={longitude}&appid=3cbc754faada3a731dd38275eb194770'
     response = requests.get(url_weather)
     json_data = json.loads(response.text)
@@ -40,7 +38,7 @@ def send_massage(message):
 def get_text_messages(message):
     city = message.text
     latitude, longitude = geo_pos(city)
-    you_weather = weather_london(latitude, longitude)
+    you_weather = weather_in_city(latitude, longitude)
     print_weather(you_weather, message)
 
 
