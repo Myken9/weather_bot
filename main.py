@@ -2,6 +2,13 @@ import json
 import requests
 import telebot
 from geopy import geocoders
+from translate import Translator
+
+
+def translate_weather(words):
+    translator = Translator(to_lang="Russian")
+    translation = translator.translate(words)
+    return translation
 
 
 def geo_pos(city):
@@ -17,7 +24,7 @@ def weather_in_city(latitude, longitude):
     json_data = json.loads(response.text)
     dict_weather = dict()
     dict_weather["temp"] = int(json_data["main"]["temp"]) - 273
-    dict_weather["weather"] = json_data["weather"][0]["main"]
+    dict_weather["weather"] = translate_weather(json_data["weather"][0]["main"])
     return dict_weather
 
 
@@ -31,7 +38,7 @@ bot = telebot.TeleBot("5027574826:AAFag0KMdDDpvg6WJa9j5JSgEczmbqsYtQE")
 
 @bot.message_handler(commands=['start', 'help'])
 def send_massage(message):
-    bot.reply_to(message, f'Я Sebastian - бот погоды, приятно познакомитсья, {message.from_user.first_name},'
+    bot.send_message(message.from_user.id, f'Я Sebastian - бот погоды, приятно познакомитсья, {message.from_user.first_name},'
                           f' Напишите название города, в котором хотите узнать погоду.')
 
 @bot.message_handler(content_types=['text'])
