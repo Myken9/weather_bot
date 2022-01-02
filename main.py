@@ -24,7 +24,10 @@ def weather_in_city(latitude, longitude):
     json_data = json.loads(response.text)
     dict_weather = dict()
     dict_weather["temp"] = int(json_data["main"]["temp"]) - 273
-    dict_weather["weather"] = translate_weather(json_data["weather"][0]["main"])
+    weather_on_russian = translate_weather(json_data["weather"][0]["main"])
+    if weather_on_russian == "Очистить":
+        weather_on_russian = "ни облочка"
+    dict_weather["weather"] = weather_on_russian
     return dict_weather
 
 
