@@ -6,6 +6,7 @@ from translate import Translator
 from multiprocessing.context import Process
 import schedule
 import time
+import sqlite3 as sq
 
 
 def start_process():
@@ -14,7 +15,7 @@ def start_process():
 
 class P_schedule():
     def start_schedule():
-        schedule.every().day.at("10:00").do(resent_message)
+        schedule.every(10).seconds.do(resent_message)
 
         while True:
             schedule.run_pending()
@@ -48,11 +49,12 @@ def weather_in_city(latitude, longitude):
 
 
 def resent_message():
+    clients = select_clients()
     for client in clients:
-        city = clients[client]
+        city = client[1]
         latitude, longitude = geo_pos(city)
         you_weather = weather_in_city(latitude, longitude)
-        bot.send_message(client, f' Температура сейчас {you_weather["temp"]}!'
+        bot.send_message(client[0], f' Температура сейчас {you_weather["temp"]}!'
                                  f' А на небе {you_weather["weather"]}.')
 
 
@@ -61,9 +63,25 @@ def print_weather(dict_weather, message):
                                            f' А на небе {dict_weather["weather"]}.')
 
 
-bot = telebot.TeleBot("5027574826:AAFag0KMdDDpvg6WJa9j5JSgEczmbqsYtQE")
+def insert_client(user_id, city):
+    with sq.connect("weather_clients.db") as con:
+        cur = con.cursor()
 
-clients = {336065295: "Москва"}
+        # TODO сделать чтобы SQL запрос работал и на добавление и на обновление
+
+        cur.execute("UPDATE users SET city = (?) WHERE user_id = (?) OR INSERT INTO users (user_id, city) VALUES (?, ?)", (city, user_id, user_id, city))
+
+
+def select_clients():
+    with sq.connect("weather_clients.db") as con:
+        cur = con.cursor()
+
+        cur.execute("SELECT * FROM users")
+        result = cur.fetchall()
+        return result
+
+
+bot = telebot.TeleBot("5027574826:AAFag0KMdDDpvg6WJa9j5JSgEczmbqsYtQE")
 
 
 @bot.message_handler(commands=['start', 'help'])
@@ -76,10 +94,11 @@ def send_massage(message):
 @bot.message_handler(content_types=['text'])
 def get_text_messages(message):
     city = message.text
-    clients[message.from_user.id] = city
+    user_id = message.from_user.id
     latitude, longitude = geo_pos(city)
     you_weather = weather_in_city(latitude, longitude)
     print_weather(you_weather, message)
+    insert_client(user_id, city)
 
 
 if __name__ == '__main__':
