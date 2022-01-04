@@ -55,7 +55,7 @@ def resent_message():
         latitude, longitude = geo_pos(city)
         you_weather = weather_in_city(latitude, longitude)
         bot.send_message(client[0], f' Температура сейчас {you_weather["temp"]}!'
-                                 f' А на небе {you_weather["weather"]}.')
+                                    f' А на небе {you_weather["weather"]}.')
 
 
 def print_weather(dict_weather, message):
@@ -67,9 +67,8 @@ def insert_client(user_id, city):
     with sq.connect("weather_clients.db") as con:
         cur = con.cursor()
 
-        # TODO сделать чтобы SQL запрос работал и на добавление и на обновление
+        cur.execute("INSERT INTO users (user_id, city) VALUES (?, ?) ON CONFLICT(user_id) DO UPDATE SET city = (?)", (user_id, city, city))
 
-        cur.execute("UPDATE users SET city = (?) WHERE user_id = (?) OR INSERT INTO users (user_id, city) VALUES (?, ?)", (city, user_id, user_id, city))
 
 
 def select_clients():
